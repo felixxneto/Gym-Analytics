@@ -13,64 +13,48 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.projeto.gymanalytics.R;
 import com.projeto.gymanalytics.model.SerieComExercicio;
 
-/**
- * Adapter para a lista de séries na TreinoDetalheActivity.
- * Exibe os dados do JOIN entre Serie e Exercicio.
- */
-public class SerieAdapter extends ListAdapter<SerieComExercicio, SerieAdapter.SerieViewHolder> {
+public class SerieAdapter extends ListAdapter<SerieComExercicio, SerieAdapter.ViewHolder> {
 
     public SerieAdapter() {
-        super(DIFF_CALLBACK);
+        super(new DiffUtil.ItemCallback<SerieComExercicio>() {
+            @Override public boolean areItemsTheSame(@NonNull SerieComExercicio a, @NonNull SerieComExercicio b) {
+                return a.serieId == b.serieId;
+            }
+            @Override public boolean areContentsTheSame(@NonNull SerieComExercicio a, @NonNull SerieComExercicio b) {
+                return a.pesoKg == b.pesoKg && a.repeticoes == b.repeticoes;
+            }
+        });
     }
 
-    private static final DiffUtil.ItemCallback<SerieComExercicio> DIFF_CALLBACK =
-            new DiffUtil.ItemCallback<SerieComExercicio>() {
-                @Override
-                public boolean areItemsTheSame(@NonNull SerieComExercicio a, @NonNull SerieComExercicio b) {
-                    return a.serieId == b.serieId;
-                }
-
-                @Override
-                public boolean areContentsTheSame(@NonNull SerieComExercicio a, @NonNull SerieComExercicio b) {
-                    return a.pesoKg == b.pesoKg
-                            && a.repeticoes == b.repeticoes
-                            && a.nomeExercicio.equals(b.nomeExercicio);
-                }
-            };
-
-    @NonNull
-    @Override
-    public SerieViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
+    @NonNull @Override
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_serie, parent, false);
-        return new SerieViewHolder(view);
+        return new ViewHolder(v);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull SerieViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.bind(getItem(position));
     }
 
-    static class SerieViewHolder extends RecyclerView.ViewHolder {
+    static class ViewHolder extends RecyclerView.ViewHolder {
+        TextView txtOrdem, txtExercicio, txtGrupo, txtCarga;
 
-        private final TextView txtOrdem;
-        private final TextView txtExercicio;
-        private final TextView txtGrupo;
-        private final TextView txtCarga;
-
-        public SerieViewHolder(@NonNull View itemView) {
-            super(itemView);
-            txtOrdem     = itemView.findViewById(R.id.txtOrdemSerie);
-            txtExercicio = itemView.findViewById(R.id.txtNomeExercicio);
-            txtGrupo     = itemView.findViewById(R.id.txtGrupoMuscular);
-            txtCarga     = itemView.findViewById(R.id.txtCargaSerie);
+        ViewHolder(@NonNull View v) {
+            super(v);
+            txtOrdem     = v.findViewById(R.id.txtOrdemSerie);
+            txtExercicio = v.findViewById(R.id.txtNomeExercicio);
+            txtGrupo     = v.findViewById(R.id.txtGrupoMuscular);
+            txtCarga     = v.findViewById(R.id.txtCargaSerie);
         }
 
-        public void bind(SerieComExercicio serie) {
-            txtOrdem.setText(String.format("Série %d", serie.ordemSerie));
-            txtExercicio.setText(serie.nomeExercicio);
-            txtGrupo.setText(serie.grupoMuscular);
-            txtCarga.setText(String.format("%.1f kg × %d reps", serie.pesoKg, serie.repeticoes));
+        void bind(SerieComExercicio s) {
+            txtOrdem.setText(String.format("Série %d", s.ordemSerie));
+            txtExercicio.setText(s.nomeExercicio);
+            txtGrupo.setText(s.grupoMuscular);
+            txtCarga.setText(String.format(Locale.getDefault(),
+                    "%.1f kg × %d reps", s.pesoKg, s.repeticoes));
         }
     }
 }

@@ -26,46 +26,36 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Toolbar — deve ser configurada antes de qualquer outra coisa
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         viewModel = new ViewModelProvider(this).get(GymViewModel.class);
-
-        // Sincroniza exercícios da API para o Room na abertura
         viewModel.sincronizarExercicios();
 
-        // RecyclerView
+        TextView txtVazio = findViewById(R.id.txtListaVazia);
         RecyclerView recyclerView = findViewById(R.id.recyclerTreinos);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
-        adapter = new TreinoAdapter(this::abrirDetalhe);
+
+        adapter = new TreinoAdapter(treino -> {
+            Intent intent = new Intent(this, TreinoDetalheActivity.class);
+            intent.putExtra("TREINO_ID", treino.id);
+            intent.putExtra("TREINO_NOME", treino.nome);
+            startActivity(intent);
+        });
         recyclerView.setAdapter(adapter);
 
-        // Lista vazia
-        TextView txtVazio = findViewById(R.id.txtListaVazia);
-
-        // Observa treinos
         viewModel.todosTreinos.observe(this, treinos -> {
             adapter.submitList(treinos);
             txtVazio.setVisibility(
-                    treinos == null || treinos.isEmpty() ? View.VISIBLE : View.GONE
-            );
+                    treinos == null || treinos.isEmpty() ? View.VISIBLE : View.GONE);
         });
 
-        // FAB
         FloatingActionButton fab = findViewById(R.id.fabNovoTreino);
         fab.setOnClickListener(v -> abrirDialogNovoTreino());
     }
 
-    private void abrirDetalhe(Treino treino) {
-        Intent intent = new Intent(this, TreinoDetalheActivity.class);
-        intent.putExtra("TREINO_ID", treino.id);
-        intent.putExtra("TREINO_NOME", treino.nome);
-        startActivity(intent);
-    }
-
     private void abrirDialogNovoTreino() {
-        NovoTreinoDialog dialog = new NovoTreinoDialog(nome -> {
+        new NovoTreinoDialog(nome -> {
             Treino treino = new Treino(nome, System.currentTimeMillis());
             viewModel.inserirTreino(treino, id -> runOnUiThread(() -> {
                 Intent intent = new Intent(this, TreinoDetalheActivity.class);
@@ -73,7 +63,6 @@ public class MainActivity extends AppCompatActivity {
                 intent.putExtra("TREINO_NOME", nome);
                 startActivity(intent);
             }));
-        });
-        dialog.show(getSupportFragmentManager(), "NovoTreinoDialog");
+        }).show(getSupportFragmentManager(), "NovoTreinoDialog");
     }
 }

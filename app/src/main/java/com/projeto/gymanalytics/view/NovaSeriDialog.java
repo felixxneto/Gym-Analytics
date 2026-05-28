@@ -20,66 +20,51 @@ import java.util.List;
 
 public class NovaSeriDialog extends DialogFragment {
 
-    public interface OnSerieCriadaListener {
-        void onSerieCriada(int exercicioId, double pesoKg, int repeticoes, int ordem);
+    public interface Listener {
+        void onCriada(int exercicioId, double pesoKg, int repeticoes, int ordem);
     }
 
     private final List<Exercicio> exercicios;
-    private final OnSerieCriadaListener listener;
+    private final Listener listener;
 
-    // Recebe a lista já resolvida — não mais LiveData
-    public NovaSeriDialog(List<Exercicio> exercicios, OnSerieCriadaListener listener) {
+    public NovaSeriDialog(List<Exercicio> exercicios, Listener listener) {
         this.exercicios = exercicios;
         this.listener = listener;
     }
 
-    @NonNull
-    @Override
+    @NonNull @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
         View view = LayoutInflater.from(getContext())
                 .inflate(R.layout.dialog_nova_serie, null);
 
-        Spinner spinnerExercicio = view.findViewById(R.id.spinnerExercicio);
-        EditText editPeso        = view.findViewById(R.id.editPesoKg);
-        EditText editReps        = view.findViewById(R.id.editRepeticoes);
-        EditText editOrdem       = view.findViewById(R.id.editOrdemSerie);
+        Spinner spinner     = view.findViewById(R.id.spinnerExercicio);
+        EditText editPeso   = view.findViewById(R.id.editPesoKg);
+        EditText editReps   = view.findViewById(R.id.editRepeticoes);
+        EditText editOrdem  = view.findViewById(R.id.editOrdemSerie);
 
-        // Popula o Spinner com a lista já disponível
         List<String> nomes = new ArrayList<>();
-        for (Exercicio e : exercicios) {
-            nomes.add(e.nome + " (" + e.grupoMuscular + ")");
-        }
+        for (Exercicio e : exercicios) nomes.add(e.nome + " (" + e.grupoMuscular + ")");
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                requireContext(),
-                android.R.layout.simple_spinner_item,
-                nomes
-        );
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(),
+                android.R.layout.simple_spinner_item, nomes);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerExercicio.setAdapter(adapter);
+        spinner.setAdapter(adapter);
 
         return new AlertDialog.Builder(requireContext())
                 .setTitle("Nova Série")
                 .setView(view)
-                .setPositiveButton("Salvar", (dialog, which) -> {
-                    int index = spinnerExercicio.getSelectedItemPosition();
-                    if (exercicios.isEmpty() || index < 0) return;
-
-                    int exercicioId = exercicios.get(index).id;
-
-                    double peso = 0;
-                    int reps    = 0;
-                    int ordem   = 1;
-
+                .setPositiveButton("Salvar", (d, w) -> {
+                    int index = spinner.getSelectedItemPosition();
+                    if (index < 0 || exercicios.isEmpty()) return;
                     try {
-                        peso  = Double.parseDouble(editPeso.getText().toString());
-                        reps  = Integer.parseInt(editReps.getText().toString());
-                        ordem = Integer.parseInt(editOrdem.getText().toString());
+                        int exercicioId = exercicios.get(index).id;
+                        double peso = Double.parseDouble(editPeso.getText().toString());
+                        int reps    = Integer.parseInt(editReps.getText().toString());
+                        int ordem   = Integer.parseInt(editOrdem.getText().toString());
+                        listener.onCriada(exercicioId, peso, reps, ordem);
                     } catch (NumberFormatException e) {
-                        // valor inválido — ignora
+                        // campos inválidos — ignora
                     }
-
-                    listener.onSerieCriada(exercicioId, peso, reps, ordem);
                 })
                 .setNegativeButton("Cancelar", null)
                 .create();

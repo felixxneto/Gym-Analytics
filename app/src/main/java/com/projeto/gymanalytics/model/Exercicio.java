@@ -1,16 +1,11 @@
 package com.projeto.gymanalytics.model;
 
+import androidx.annotation.NonNull;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
-import androidx.annotation.NonNull;
 
-/**
- * Entidade que representa o catálogo fixo de exercícios.
- * Não armazena dados de esforço — apenas o "o quê" foi feito.
- */
 @Entity(tableName = "exercicio")
 public class Exercicio {
-
     @PrimaryKey(autoGenerate = false)
     public int id;
 

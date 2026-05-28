@@ -12,24 +12,16 @@ import retrofit2.http.GET;
 import retrofit2.http.POST;
 import retrofit2.http.Path;
 
-/**
- * Contrato da API REST.
- * Cada método mapeia um endpoint do FastAPI.
- */
 public interface ApiService {
-
-    // --- Exercicios ---
     @GET("exercicios/")
     Call<List<ExercicioDto>> listarExercicios();
 
-    // --- Treinos ---
     @POST("treinos/")
     Call<TreinoDto> criarTreino(@Body TreinoDto treino);
 
     @GET("treinos/")
     Call<List<TreinoDto>> listarTreinos();
 
-    // --- Series ---
     @POST("series/")
     Call<SerieDto> criarSerie(@Body SerieDto serie);
 

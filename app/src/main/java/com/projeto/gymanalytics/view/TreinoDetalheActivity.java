@@ -14,7 +14,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.projeto.gymanalytics.R;
 import com.projeto.gymanalytics.model.Exercicio;
 import com.projeto.gymanalytics.model.Serie;
-import com.projeto.gymanalytics.model.Treino;
 import com.projeto.gymanalytics.viewmodel.GymViewModel;
 
 import java.util.List;
@@ -24,8 +23,6 @@ public class TreinoDetalheActivity extends AppCompatActivity {
     private GymViewModel viewModel;
     private SerieAdapter adapter;
     private int treinoId;
-
-    // Lista de exercícios cacheada — carregada uma vez, reutilizada no dialog
     private List<Exercicio> exerciciosCacheados;
 
     @Override
@@ -36,7 +33,6 @@ public class TreinoDetalheActivity extends AppCompatActivity {
         treinoId = getIntent().getIntExtra("TREINO_ID", -1);
         String treinoNome = getIntent().getStringExtra("TREINO_NOME");
 
-        // Toolbar — sempre primeiro
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
@@ -46,48 +42,33 @@ public class TreinoDetalheActivity extends AppCompatActivity {
 
         viewModel = new ViewModelProvider(this).get(GymViewModel.class);
 
-        // RecyclerView de séries
         RecyclerView recyclerView = findViewById(R.id.recyclerSeries);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new SerieAdapter();
         recyclerView.setAdapter(adapter);
 
-        // Observa séries do treino
         viewModel.buscarSeriesDoTreino(treinoId).observe(this,
                 series -> adapter.submitList(series));
 
-        // Cacheia exercícios — observer registrado uma única vez
-        viewModel.todosExercicios.observe(this, exercicios ->
-                exerciciosCacheados = exercicios);
+        // Cacheia exercícios — observer único
+        viewModel.todosExercicios.observe(this,
+                exercicios -> exerciciosCacheados = exercicios);
 
-        // Botão finalizar — observer registrado uma única vez
-        configurarBotaoFinalizar();
-
-        // FAB adicionar série
-        FloatingActionButton fab = findViewById(R.id.fabAdicionarSerie);
-        fab.setOnClickListener(v -> abrirDialogNovaSerie());
-    }
-
-    private void configurarBotaoFinalizar() {
+        // Botão finalizar
         MaterialButton btnFinalizar = findViewById(R.id.btnFinalizarTreino);
-
         viewModel.buscarTreinoPorId(treinoId).observe(this, treino -> {
             if (treino == null) return;
-
-            // Atualiza estado visual do botão conforme status do treino
-            if (treino.dataFim != null) {
-                btnFinalizar.setText("Treino Finalizado");
-                btnFinalizar.setEnabled(false);
-            } else {
-                btnFinalizar.setText("Finalizar Treino");
-                btnFinalizar.setEnabled(true);
-            }
-
+            boolean finalizado = treino.dataFim != null;
+            btnFinalizar.setEnabled(!finalizado);
+            btnFinalizar.setText(finalizado ? "Treino Finalizado" : "Finalizar Treino");
             btnFinalizar.setOnClickListener(v -> {
                 viewModel.finalizarTreino(treino);
                 Toast.makeText(this, "Treino finalizado!", Toast.LENGTH_SHORT).show();
             });
         });
+
+        FloatingActionButton fab = findViewById(R.id.fabAdicionarSerie);
+        fab.setOnClickListener(v -> abrirDialogNovaSerie());
     }
 
     private void abrirDialogNovaSerie() {
@@ -95,15 +76,10 @@ public class TreinoDetalheActivity extends AppCompatActivity {
             Toast.makeText(this, "Aguarde, carregando exercícios...", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        NovaSeriDialog dialog = new NovaSeriDialog(
-                exerciciosCacheados,
-                (exercicioId, peso, reps, ordem) -> {
-                    Serie serie = new Serie(treinoId, exercicioId, peso, reps, ordem);
-                    viewModel.inserirSerie(serie);
-                }
-        );
-        dialog.show(getSupportFragmentManager(), "NovaSerieDialog");
+        new NovaSeriDialog(exerciciosCacheados, (exercicioId, peso, reps, ordem) -> {
+            Serie serie = new Serie(treinoId, exercicioId, peso, reps, ordem);
+            viewModel.inserirSerie(serie);
+        }).show(getSupportFragmentManager(), "NovaSerieDialog");
     }
 
     @Override

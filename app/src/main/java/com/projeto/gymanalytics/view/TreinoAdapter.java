@@ -17,74 +17,50 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-/**
- * Adapter para a lista de treinos na MainActivity.
- * Usa ListAdapter + DiffUtil: só re-renderiza itens que mudaram.
- */
-public class TreinoAdapter extends ListAdapter<Treino, TreinoAdapter.TreinoViewHolder> {
+public class TreinoAdapter extends ListAdapter<Treino, TreinoAdapter.ViewHolder> {
 
-    public interface OnTreinoClickListener {
-        void onClick(Treino treino);
-    }
+    public interface OnClickListener { void onClick(Treino treino); }
+    private final OnClickListener listener;
 
-    private final OnTreinoClickListener listener;
-
-    public TreinoAdapter(OnTreinoClickListener listener) {
-        super(DIFF_CALLBACK);
+    public TreinoAdapter(OnClickListener listener) {
+        super(new DiffUtil.ItemCallback<Treino>() {
+            @Override public boolean areItemsTheSame(@NonNull Treino a, @NonNull Treino b) {
+                return a.id == b.id;
+            }
+            @Override public boolean areContentsTheSame(@NonNull Treino a, @NonNull Treino b) {
+                return a.nome.equals(b.nome) && a.dataFim == b.dataFim;
+            }
+        });
         this.listener = listener;
     }
 
-    private static final DiffUtil.ItemCallback<Treino> DIFF_CALLBACK =
-            new DiffUtil.ItemCallback<Treino>() {
-                @Override
-                public boolean areItemsTheSame(@NonNull Treino a, @NonNull Treino b) {
-                    return a.id == b.id;
-                }
-
-                @Override
-                public boolean areContentsTheSame(@NonNull Treino a, @NonNull Treino b) {
-                    return a.nome.equals(b.nome) && a.dataFim == b.dataFim;
-                }
-            };
-
-    @NonNull
-    @Override
-    public TreinoViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext())
+    @NonNull @Override
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.item_treino, parent, false);
-        return new TreinoViewHolder(view);
+        return new ViewHolder(v);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull TreinoViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         holder.bind(getItem(position), listener);
     }
 
-    static class TreinoViewHolder extends RecyclerView.ViewHolder {
+    static class ViewHolder extends RecyclerView.ViewHolder {
+        TextView txtNome, txtData, txtStatus;
 
-        private final TextView txtNome;
-        private final TextView txtData;
-        private final TextView txtStatus;
-
-        public TreinoViewHolder(@NonNull View itemView) {
-            super(itemView);
-            txtNome   = itemView.findViewById(R.id.txtNomeTreino);
-            txtData   = itemView.findViewById(R.id.txtDataTreino);
-            txtStatus = itemView.findViewById(R.id.txtStatusTreino);
+        ViewHolder(@NonNull View v) {
+            super(v);
+            txtNome   = v.findViewById(R.id.txtNomeTreino);
+            txtData   = v.findViewById(R.id.txtDataTreino);
+            txtStatus = v.findViewById(R.id.txtStatusTreino);
         }
 
-        public void bind(Treino treino, OnTreinoClickListener listener) {
+        void bind(Treino treino, OnClickListener listener) {
             txtNome.setText(treino.nome);
-
-            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault());
-            txtData.setText(sdf.format(new Date(treino.dataInicio)));
-
-            if (treino.dataFim == null) {
-                txtStatus.setText("Em andamento");
-            } else {
-                txtStatus.setText("Finalizado");
-            }
-
+            txtData.setText(new SimpleDateFormat("dd/MM/yyyy HH:mm",
+                    Locale.getDefault()).format(new Date(treino.dataInicio)));
+            txtStatus.setText(treino.dataFim == null ? "Em andamento" : "Finalizado");
             itemView.setOnClickListener(v -> listener.onClick(treino));
         }
     }
