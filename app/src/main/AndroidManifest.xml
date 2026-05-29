@@ -10,7 +10,8 @@
         android:label="Gym Analytics"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.GymAnalytics">
+        android:theme="@style/Theme.GymAnalytics"
+        android:networkSecurityConfig="@xml/network_security_config">
 
         <activity
             android:name=".view.MainActivity"

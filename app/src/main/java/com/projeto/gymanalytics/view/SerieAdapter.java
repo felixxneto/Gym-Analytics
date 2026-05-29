@@ -13,6 +13,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.projeto.gymanalytics.R;
 import com.projeto.gymanalytics.model.SerieComExercicio;
 
+import java.util.Locale;
+
 public class SerieAdapter extends ListAdapter<SerieComExercicio, SerieAdapter.ViewHolder> {
 
     public SerieAdapter() {

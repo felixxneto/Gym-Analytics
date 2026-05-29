@@ -3,6 +3,7 @@ package com.projeto.gymanalytics.repository;
 import android.content.Context;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
+import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 
@@ -46,11 +47,18 @@ public class GymRepository {
     }
 
     public void sincronizarExercicios() {
-        if (!isConectado()) return;
+        if (!isConectado()) {
+            Log.d("GymRepo", "Sem conexão — sync cancelado");
+            return;
+        }
+
+        Log.d("GymRepo", "Iniciando sync de exercícios...");
         apiService.listarExercicios().enqueue(new Callback<List<ExercicioDto>>() {
             @Override
             public void onResponse(Call<List<ExercicioDto>> call, Response<List<ExercicioDto>> response) {
+                Log.d("GymRepo", "Resposta recebida: " + response.code());
                 if (response.isSuccessful() && response.body() != null) {
+                    Log.d("GymRepo", "Exercícios recebidos: " + response.body().size());
                     executor.execute(() -> {
                         for (ExercicioDto dto : response.body()) {
                             Exercicio e = new Exercicio(dto.nome, dto.grupoMuscular);
@@ -60,8 +68,11 @@ public class GymRepository {
                     });
                 }
             }
+
             @Override
-            public void onFailure(Call<List<ExercicioDto>> call, Throwable t) {}
+            public void onFailure(Call<List<ExercicioDto>> call, Throwable t) {
+                Log.e("GymRepo", "Falha no sync: " + t.getMessage());
+            }
         });
     }
 

@@ -2,10 +2,6 @@ from pydantic import BaseModel
 from typing import Optional, List
 
 
-# -------------------------------------------------------------------------
-# EXERCICIO
-# -------------------------------------------------------------------------
-
 class ExercicioBase(BaseModel):
     nome: str
     grupo_muscular: str
@@ -16,13 +12,8 @@ class ExercicioCreate(ExercicioBase):
 class ExercicioResponse(ExercicioBase):
     id: int
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
-
-# -------------------------------------------------------------------------
-# SERIE
-# -------------------------------------------------------------------------
 
 class SerieBase(BaseModel):
     treino_id: int
@@ -37,13 +28,8 @@ class SerieCreate(SerieBase):
 class SerieResponse(SerieBase):
     id: int
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
-
-# -------------------------------------------------------------------------
-# TREINO
-# -------------------------------------------------------------------------
 
 class TreinoBase(BaseModel):
     nome: str
@@ -57,17 +43,12 @@ class TreinoResponse(TreinoBase):
     id: int
     series: List[SerieResponse] = []
 
-    class Config:
-        from_attributes = True
+    model_config = {"from_attributes": True}
 
-
-# -------------------------------------------------------------------------
-# ANALYTICS
-# -------------------------------------------------------------------------
 
 class VolumeGrupoMuscular(BaseModel):
     grupo_muscular: str
-    volume_total: float  # soma de (peso_kg * repeticoes) por grupo
+    volume_total: float
 
 class AnalyticsResponse(BaseModel):
     treino_id: int

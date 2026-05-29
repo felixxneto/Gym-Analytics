@@ -7,7 +7,6 @@ import schemas
 import analytics
 from database import engine, get_db
 
-# Cria as tabelas no PostgreSQL na primeira execução
 models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Gym Analytics API", version="1.0.0")
@@ -19,7 +18,7 @@ app = FastAPI(title="Gym Analytics API", version="1.0.0")
 
 @app.get("/exercicios/", response_model=List[schemas.ExercicioResponse])
 def listar_exercicios(db: Session = Depends(get_db)):
-    return db.query(models.Exercicio).all()
+    return db.query(models.Exercicio).order_by(models.Exercicio.grupo_muscular).all()
 
 
 @app.post("/exercicios/", response_model=schemas.ExercicioResponse, status_code=201)
